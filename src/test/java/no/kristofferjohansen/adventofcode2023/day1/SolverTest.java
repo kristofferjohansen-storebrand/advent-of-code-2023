@@ -19,4 +19,18 @@ class SolverTest {
 
         Assertions.assertEquals(142, Solver.solvePartOne(Arrays.asList(data.split("\n"))));
     }
+
+    @Test
+    void testSolvePartTwo() {
+        final String data = """
+                two1nine
+                eightwothree
+                abcone2threexyz
+                xtwone3four
+                4nineeightseven2
+                zoneight234
+                7pqrstsixteen""";
+
+        Assertions.assertEquals(281, Solver.solvePartTwo(Arrays.asList(data.split("\n"))));
+    }
 }
