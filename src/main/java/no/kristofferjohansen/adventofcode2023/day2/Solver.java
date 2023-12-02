@@ -4,9 +4,9 @@ import no.kristofferjohansen.adventofcode2023.common.FileUtil;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Solver {
@@ -16,10 +16,10 @@ public class Solver {
             final List<String> data = FileUtil.readInputFile(this.getClass());
             Date start = new Date();
             System.out.println(solvePartOne(data));
-            System.out.printf("First puzzle took %d ms\n", new Date().getTime()-start.getTime());
-//            start = new Date();
-//            System.out.println(solvePartTwo(data));
-//            System.out.printf("Second puzzle took %d ms\n", new Date().getTime()-start.getTime());
+            System.out.printf("First puzzle took %d ms\n", new Date().getTime() - start.getTime());
+            start = new Date();
+            System.out.println(solvePartTwo(data));
+            System.out.printf("Second puzzle took %d ms\n", new Date().getTime()-start.getTime());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -27,24 +27,52 @@ public class Solver {
 
     static int solvePartOne(final List<String> data) {
         return data.stream()
-                .mapToInt(gameData -> checkGame(gameData, 13, 14, 12))
+                .mapToInt(gameData -> checkGameIsPossibleWithMaxValues(gameData, 13, 14, 12))
                 .sum();
     }
 
-    private static int checkGame(final String gameData, final int greenMax, final int blueMax, final int redMax) {
+    static int solvePartTwo(final List<String> data) {
+        return data.stream()
+                .mapToInt(Solver::getGamePower)
+                .sum();
+    }
+
+    private static int checkGameIsPossibleWithMaxValues(final String gameData, final int greenMax, final int blueMax, final int redMax) {
         final int gameDataDividerIndex = gameData.indexOf(":");
         final String gameSetsString = gameData.substring(gameDataDividerIndex + 1).trim();
-        final String[] gameSets = gameSetsString.split(Pattern.quote(";"));
+        final String[] gameSets = gameSetsString.split(";");
 
         return Arrays.stream(gameSets)
                 .map(Solver::buildCubeAmountMap)
                 .anyMatch(cubeAmountMap -> cubeAmountMap.get("green") > greenMax
                         || cubeAmountMap.get("blue") > blueMax
-                        || cubeAmountMap.get("red") > redMax)? 0 : Integer.parseInt(gameData.substring(5, gameDataDividerIndex));
+                        || cubeAmountMap.get("red") > redMax) ? 0 : Integer.parseInt(gameData.substring(5, gameDataDividerIndex));
+    }
+
+    private static int getGamePower(final String gameData) {
+        final int gameDataDividerIndex = gameData.indexOf(":");
+        final String gameSetsString = gameData.substring(gameDataDividerIndex + 1).trim();
+        final String[] gameSets = gameSetsString.split(";");
+
+        Map<String, Integer> highestCubeAmountMap = new HashMap<>();
+        Arrays.stream(gameSets)
+                .map(Solver::buildCubeAmountMap)
+                .forEach(cubeAmountMap -> {
+                    final Integer greenAmount = cubeAmountMap.get("green");
+                    final Integer blueAmount = cubeAmountMap.get("blue");
+                    final Integer redAmount = cubeAmountMap.get("red");
+
+                    highestCubeAmountMap.compute("green", (key, value) -> value == null ? greenAmount : Math.max(value, greenAmount));
+                    highestCubeAmountMap.compute("blue", (key, value) -> value == null ? blueAmount : Math.max(value, blueAmount));
+                    highestCubeAmountMap.compute("red", (key, value) -> value == null ? redAmount : Math.max(value, redAmount));
+                });
+
+        return highestCubeAmountMap.getOrDefault("green", 1) *
+                highestCubeAmountMap.getOrDefault("blue", 1) *
+                highestCubeAmountMap.getOrDefault("red", 1);
     }
 
     private static Map<String, Integer> buildCubeAmountMap(final String setData) {
-
         final Map<String, Integer> cubeAmountMap = Arrays.stream(setData.split(","))
                 .map(cubeData -> cubeData.trim().split(" "))
                 .collect(Collectors.toMap(cubeData -> cubeData[1], cubeData -> Integer.parseInt(cubeData[0])));
