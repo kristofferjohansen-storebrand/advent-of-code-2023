@@ -20,8 +20,8 @@ public class Solver {
             start = new Date();
             System.out.println(solvePartTwo(data));
             System.out.printf("Second puzzle took %d ms\n", new Date().getTime()-start.getTime());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -57,19 +57,21 @@ public class Solver {
         Map<String, Integer> highestCubeAmountMap = new HashMap<>();
         Arrays.stream(gameSets)
                 .map(Solver::buildCubeAmountMap)
-                .forEach(cubeAmountMap -> {
-                    final Integer greenAmount = cubeAmountMap.get("green");
-                    final Integer blueAmount = cubeAmountMap.get("blue");
-                    final Integer redAmount = cubeAmountMap.get("red");
-
-                    highestCubeAmountMap.compute("green", (key, value) -> value == null ? greenAmount : Math.max(value, greenAmount));
-                    highestCubeAmountMap.compute("blue", (key, value) -> value == null ? blueAmount : Math.max(value, blueAmount));
-                    highestCubeAmountMap.compute("red", (key, value) -> value == null ? redAmount : Math.max(value, redAmount));
-                });
+                .forEach(cubeAmountMap -> updateHighestCubeAmountMap(cubeAmountMap, highestCubeAmountMap));
 
         return highestCubeAmountMap.getOrDefault("green", 1) *
                 highestCubeAmountMap.getOrDefault("blue", 1) *
                 highestCubeAmountMap.getOrDefault("red", 1);
+    }
+
+    private static void updateHighestCubeAmountMap(Map<String, Integer> cubeAmountMap, Map<String, Integer> highestCubeAmountMap) {
+        final Integer greenAmount = cubeAmountMap.get("green");
+        final Integer blueAmount = cubeAmountMap.get("blue");
+        final Integer redAmount = cubeAmountMap.get("red");
+
+        highestCubeAmountMap.compute("green", (key, value) -> value == null ? greenAmount : Math.max(value, greenAmount));
+        highestCubeAmountMap.compute("blue", (key, value) -> value == null ? blueAmount : Math.max(value, blueAmount));
+        highestCubeAmountMap.compute("red", (key, value) -> value == null ? redAmount : Math.max(value, redAmount));
     }
 
     private static Map<String, Integer> buildCubeAmountMap(final String setData) {
