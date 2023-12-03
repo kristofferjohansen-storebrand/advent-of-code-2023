@@ -34,4 +34,21 @@ class SolverTest {
 
         assertEquals(0, Solver.solvePartOne(data.lines().toList()));
     }
+
+    @Test
+    void solvePartTwo() {
+        final String data = """
+                467..114..
+                ...*......
+                ..35..633.
+                ......#...
+                617*......
+                .....+.58.
+                ..592.....
+                ......755.
+                ...$.*....
+                .664.598..""";
+
+        assertEquals(467835, Solver.solvePartTwo(data.lines().toList()));
+    }
 }

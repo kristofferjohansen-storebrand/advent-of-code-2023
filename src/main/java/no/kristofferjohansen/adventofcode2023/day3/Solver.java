@@ -12,8 +12,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Solver {
-    private static final Set<Character> DIGIT_MAP = Set.of('1', '2', '3', '4', '5', '6', '7', '8', '9');
-    private static final Set<Character> NON_SYMBOL_MAP = Set.of('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.');
 
     private static final Pattern NUMBER_PATTERN = Pattern.compile("(\\d+)");
     private static final Pattern SYMBOL_PATTERN = Pattern.compile("([^\\d.])");
@@ -24,9 +22,9 @@ public class Solver {
             Date start = new Date();
             System.out.println(solvePartOne(data));
             System.out.printf("First puzzle took %d ms\n", new Date().getTime() - start.getTime());
-//            start = new Date();
-//            System.out.println(solvePartTwo(data));
-//            System.out.printf("Second puzzle took %d ms\n", new Date().getTime()-start.getTime());
+            start = new Date();
+            System.out.println(solvePartTwo(data));
+            System.out.printf("Second puzzle took %d ms\n", new Date().getTime()-start.getTime());
         } catch (final Exception e) {
             System.out.println(e.getMessage());
         }
@@ -36,9 +34,7 @@ public class Solver {
         final List<Symbol> symbols = new ArrayList<>();
         final List<EnginePart> engineParts = new ArrayList<>();
 
-        for (int i = 0; i < data.size(); i++) {
-            parseLine(data.get(i), i, symbols, engineParts);
-        }
+        parseData(data, symbols, engineParts);
 
         final Map<Integer, Map<Integer, Symbol>> symbolMap = symbols.stream()
                 .collect(Collectors.groupingBy(Symbol::x, Collectors.toMap(Symbol::y, symbol -> symbol)));
@@ -49,6 +45,29 @@ public class Solver {
                 .sum();
     }
 
+    static int solvePartTwo(final List<String> data) {
+        final List<Symbol> symbols = new ArrayList<>();
+        final List<EnginePart> engineParts = new ArrayList<>();
+
+        parseData(data, symbols, engineParts);
+
+        final Map<Integer, Map<Integer, EnginePart>> enginePartMap = engineParts.stream()
+                .collect(Collectors.groupingBy(EnginePart::getX, Collectors.toMap(EnginePart::getY, enginePart -> enginePart)));
+
+        return symbols.stream()
+                .filter(symbol -> symbol.character == '*')
+                .map(symbol -> getAdjacentEnginePartMap(symbol, data.get(0).length(), data.size(), enginePartMap))
+                .filter(enginePartList -> enginePartList.size() == 2)
+                .mapToInt(enginePartList -> enginePartList.get(0).getValue() * enginePartList.get(1).getValue())
+                .sum();
+    }
+
+    private static void parseData(List<String> data, List<Symbol> symbols, List<EnginePart> engineParts) {
+        for (int i = 0; i < data.size(); i++) {
+            parseLine(data.get(i), i, symbols, engineParts);
+        }
+    }
+
     private static void parseLine(final String line, final int y, final List<Symbol> symbols, final List<EnginePart> engineParts) {
         final Matcher numberMatcher = NUMBER_PATTERN.matcher(line);
         while (numberMatcher.find()) {
@@ -57,7 +76,7 @@ public class Solver {
 
         final Matcher symbolMatcher = SYMBOL_PATTERN.matcher(line);
         while (symbolMatcher.find()) {
-            symbols.add(new Symbol(symbolMatcher.start(), y));
+            symbols.add(new Symbol(symbolMatcher.start(), y, symbolMatcher.group().charAt(0)));
         }
     }
 
@@ -73,11 +92,25 @@ public class Solver {
                 .anyMatch(ySymbol -> ySymbol.getKey() >= startY && ySymbol.getKey() <= endY);
     }
 
+    private static List<EnginePart> getAdjacentEnginePartMap(final Symbol symbol, final int maxX, final int maxY, final Map<Integer, Map<Integer, EnginePart>> enginePartMap) {
+        final int startX = Math.max(0, symbol.x() - 1);
+        final int endX = Math.min(maxX, symbol.x() + 1);
+        final int startY = Math.max(0, symbol.y() - 1);
+        final int endY = Math.min(maxY, symbol.y() + 1);
+
+        return enginePartMap.entrySet().stream()
+                .flatMap(xEngineParts -> xEngineParts.getValue().entrySet().stream())
+                .filter(yEnginePart -> yEnginePart.getKey() >= startY && yEnginePart.getKey() <= endY)
+                .filter(yEnginePart -> yEnginePart.getValue().getX() >= startX - yEnginePart.getValue().getLength() + 1 && yEnginePart.getValue().getX() <= endX)
+                .map(Map.Entry::getValue)
+                .toList();
+    }
+
     public static void main(final String[] args) {
         new Solver();
     }
 
-    record Symbol(int x, int y) {
+    record Symbol(int x, int y, char character) {
     }
 
     static class EnginePart {
