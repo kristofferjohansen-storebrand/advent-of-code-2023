@@ -14,4 +14,13 @@ class SolverTest {
 
         assertEquals(288, Solver.solvePartOne(data.lines().toList()));
     }
+
+    @Test
+    void solvePartTwo() {
+        final String data = """
+                Time:      7  15   30
+                Distance:  9  40  200""";
+
+        assertEquals(71503, Solver.solvePartTwo(data.lines().toList()));
+    }
 }

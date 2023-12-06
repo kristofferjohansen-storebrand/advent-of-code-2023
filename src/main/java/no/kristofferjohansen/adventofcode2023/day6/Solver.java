@@ -6,6 +6,7 @@ import no.kristofferjohansen.adventofcode2023.common.ParseUtil;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 public class Solver {
 
@@ -15,9 +16,9 @@ public class Solver {
             Date start = new Date();
             System.out.println(solvePartOne(data));
             System.out.printf("First puzzle took %d ms\n", new Date().getTime() - start.getTime());
-//             start = new Date();
-//             System.out.println(solvePartTwo(data));
-//             System.out.printf("Second puzzle took %d ms\n", new Date().getTime()-start.getTime());
+            start = new Date();
+            System.out.println(solvePartTwo(data));
+            System.out.printf("Second puzzle took %d ms\n", new Date().getTime()-start.getTime());
         } catch (final Exception e) {
             System.out.println(e);
         }
@@ -36,7 +37,26 @@ public class Solver {
                 .reduce(1, (a, b) -> a * b);
     }
 
+    static long solvePartTwo(final List<String> data) {
+        final String raceTimeLine = data.get(0);
+        final long raceTime = Long.parseLong(raceTimeLine.substring(raceTimeLine.indexOf(":")+1).replace(" ", ""));
+        final String raceDistanceLine = data.get(1);
+        final long raceDistance = Long.parseLong(raceDistanceLine.substring(raceDistanceLine.indexOf(":")+1).replace(" ", ""));
+
+        return LongStream.range(0, raceTime)
+                .map(holdingTime -> getScoreForBoat(raceTime - holdingTime, holdingTime, raceDistance))
+                .sum();
+    }
+
     static int getScoreForBoat(final int timeLeft, final int speed, final int distanceToBeat) {
+        if (timeLeft == 0 || speed == 0) {
+            return 0;
+        }
+
+        return timeLeft*speed > distanceToBeat ? 1 : 0;
+    }
+
+    static long getScoreForBoat(final long timeLeft, final long speed, final long distanceToBeat) {
         if (timeLeft == 0 || speed == 0) {
             return 0;
         }
